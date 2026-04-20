@@ -7,14 +7,12 @@ php/storage/framework/sessions/*
 php/storage/framework/views/*
 php/bootstrap/cache/*
 php/public/hot
+php/database/database.sqlite
 
 # Node.js
 Nodejs/.env
 Nodejs/node_modules/
 Nodejs/coverage/
-
-# Docker
-docker-compose.override.yml
 
 # OS
 .DS_Store
