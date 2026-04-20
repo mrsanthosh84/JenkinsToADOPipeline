@@ -1,0 +1,74 @@
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+
+pr:
+  branches:
+    include:
+      - main
+
+stages:
+  - stage: Build_Test
+    displayName: 'Build & Test'
+    jobs:
+      - job: PHP_Laravel
+        displayName: 'PHP Laravel Build & Test'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - checkout: self
+
+          - script: |
+              cd php
+              composer install --no-interaction --prefer-dist --optimize-autoloader
+              cp .env.example .env
+              php artisan key:generate
+            displayName: 'Composer Install & Setup'
+
+          - script: |
+              cd php
+              vendor/bin/phpunit --configuration phpunit.xml --log-junit $(Build.ArtifactStagingDirectory)/php-test-results.xml
+            displayName: 'Run PHPUnit Tests'
+
+          - task: PublishTestResults@2
+            displayName: 'Publish PHP Test Results'
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '$(Build.ArtifactStagingDirectory)/php-test-results.xml'
+              testRunTitle: 'PHP Laravel Tests'
+            condition: always()
+
+      - job: NodeJS
+        displayName: 'Node.js Build & Test'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - checkout: self
+
+          - task: NodeTool@0
+            displayName: 'Use Node.js 18'
+            inputs:
+              versionSpec: '18.x'
+
+          - script: |
+              cd Nodejs
+              npm ci
+            displayName: 'npm Install'
+
+          - script: |
+              cd Nodejs
+              npm test -- --ci --reporters=default --reporters=jest-junit
+            displayName: 'Run Jest Tests'
+            env:
+              JEST_JUNIT_OUTPUT_DIR: $(Build.ArtifactStagingDirectory)
+              JEST_JUNIT_OUTPUT_NAME: node-test-results.xml
+
+          - task: PublishTestResults@2
+            displayName: 'Publish Node Test Results'
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '$(Build.ArtifactStagingDirectory)/node-test-results.xml'
+              testRunTitle: 'Node.js Tests'
+            condition: always()

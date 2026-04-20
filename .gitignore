@@ -1,0 +1,21 @@
+# Laravel
+php/.env
+php/vendor/
+php/storage/logs/*
+php/storage/framework/cache/*
+php/storage/framework/sessions/*
+php/storage/framework/views/*
+php/bootstrap/cache/*
+php/public/hot
+
+# Node.js
+Nodejs/.env
+Nodejs/node_modules/
+Nodejs/coverage/
+
+# Docker
+docker-compose.override.yml
+
+# OS
+.DS_Store
+Thumbs.db
