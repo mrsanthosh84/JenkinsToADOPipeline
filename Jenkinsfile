@@ -1,67 +1,66 @@
 pipeline {
     agent any
 
+    options {
+        skipDefaultCheckout(true)
+        timeout(time: 15, unit: 'MINUTES')
+        buildDiscarder(logRotator(numToKeepStr: '5'))
+    }
+
     environment {
         ADO_ORG         = 'SanthoshManickam'
         ADO_PROJECT     = 'JenkinsToADOPipeline'
         ADO_PIPELINE_ID = '1'
         ADO_BRANCH      = 'main'
-        PHP_PATH        = 'C:\\php\\php.exe'
-        COMPOSER_PATH   = 'C:\\Users\\v-samanickam\\AppData\\Local\\ComposerSetup\\bin\\composer.bat'
+        COMPOSER        = 'C:\\Users\\v-samanickam\\AppData\\Local\\ComposerSetup\\bin\\composer.bat'
+        PHP             = 'C:\\php\\php.exe'
+        NPM             = 'C:\\Program Files\\nodejs\\npm.cmd'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                checkout([$class: 'GitSCM',
+                    branches: [[name: '*/main']],
+                    extensions: [[$class: 'CloneOption', shallow: true, depth: 1]],
+                    userRemoteConfigs: scm.userRemoteConfigs
+                ])
             }
         }
 
         stage('Build & Test') {
             parallel {
-                stage('PHP - Laravel') {
-                    stages {
-                        stage('PHP Install') {
-                            steps {
-                                dir('php') {
-                                    bat '"C:\\Users\\v-samanickam\\AppData\\Local\\ComposerSetup\\bin\\composer.bat" install --no-interaction --prefer-dist --optimize-autoloader'
-                                    bat 'copy .env.example .env'
-                                    bat '"C:\\php\\php.exe" artisan key:generate'
-                                }
-                            }
-                        }
-                        stage('PHP Test') {
-                            steps {
-                                dir('php') {
-                                    bat '"C:\\php\\php.exe" vendor\\bin\\phpunit --configuration phpunit.xml'
-                                }
-                            }
+                stage('PHP') {
+                    steps {
+                        dir('php') {
+                            bat """
+                                if not exist vendor (
+                                    "${COMPOSER}" install --no-interaction --no-dev --prefer-dist --optimize-autoloader --no-scripts
+                                )
+                                if not exist .env copy .env.example .env
+                                "${PHP}" artisan key:generate --force
+                                "${PHP}" vendor\\bin\\phpunit --configuration phpunit.xml --no-coverage
+                            """
                         }
                     }
                 }
 
                 stage('Node.js') {
-                    stages {
-                        stage('Node Install') {
-                            steps {
-                                dir('Nodejs') {
-                                    bat '"C:\\Program Files\\nodejs\\npm.cmd" ci'
-                                }
-                            }
-                        }
-                        stage('Node Test') {
-                            steps {
-                                dir('Nodejs') {
-                                    bat '"C:\\Program Files\\nodejs\\npm.cmd" test'
-                                }
-                            }
+                    steps {
+                        dir('Nodejs') {
+                            bat """
+                                if not exist node_modules (
+                                    "${NPM}" ci --prefer-offline
+                                )
+                                "${NPM}" test -- --forceExit --no-coverage --testTimeout=5000
+                            """
                         }
                     }
                 }
             }
         }
 
-        stage('Trigger ADO Pipeline') {
+        stage('Trigger ADO') {
             steps {
                 withCredentials([string(credentialsId: 'ado-pat', variable: 'ADO_PAT')]) {
                     script {
@@ -76,20 +75,14 @@ pipeline {
                         )
                     }
                 }
-                echo "ADO Pipeline triggered successfully!"
+                echo "ADO Pipeline triggered!"
             }
         }
     }
 
     post {
-        success {
-            echo "Build #${env.BUILD_NUMBER} passed. ADO pipeline triggered!"
-        }
-        failure {
-            echo "Build #${env.BUILD_NUMBER} failed. ADO pipeline not triggered."
-        }
-        always {
-            cleanWs()
-        }
+        success { echo "Build #${env.BUILD_NUMBER} passed. ADO triggered!" }
+        failure { echo "Build #${env.BUILD_NUMBER} failed." }
+        always  { cleanWs() }
     }
 }

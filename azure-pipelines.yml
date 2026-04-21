@@ -14,61 +14,80 @@ stages:
     displayName: 'Build & Test'
     jobs:
       - job: PHP_Laravel
-        displayName: 'PHP Laravel Build & Test'
+        displayName: 'PHP Laravel'
         pool:
           name: 'LocalAgent'
+        timeoutInMinutes: 15
         steps:
           - checkout: self
+            fetchDepth: 1
+
+          - task: Cache@2
+            displayName: 'Cache Composer packages'
+            inputs:
+              key: 'composer | $(Build.SourcesDirectory)\php\composer.lock'
+              path: $(Build.SourcesDirectory)\php\vendor
+              cacheHitVar: COMPOSER_CACHE_HIT
 
           - script: |
-              cd php
-              call composer install --no-interaction --prefer-dist --optimize-autoloader
-              copy .env.example .env
-              php artisan key:generate
-            displayName: 'Composer Install & Setup'
+              "C:\Users\v-samanickam\AppData\Local\ComposerSetup\bin\composer.bat" install --no-interaction --no-dev --prefer-dist --optimize-autoloader --no-scripts
+            workingDirectory: $(Build.SourcesDirectory)\php
+            condition: ne(variables.COMPOSER_CACHE_HIT, 'true')
+            displayName: 'Composer Install'
 
           - script: |
-              cd php
-              php vendor/bin/phpunit --configuration phpunit.xml --log-junit $(Build.ArtifactStagingDirectory)/php-test-results.xml
+              if not exist .env copy .env.example .env
+              "C:\php\php.exe" artisan key:generate --force
+            workingDirectory: $(Build.SourcesDirectory)\php
+            displayName: 'Laravel Setup'
+
+          - script: |
+              "C:\php\php.exe" vendor\bin\phpunit --configuration phpunit.xml --no-coverage --log-junit $(Build.ArtifactStagingDirectory)\php-test-results.xml
+            workingDirectory: $(Build.SourcesDirectory)\php
             displayName: 'Run PHPUnit Tests'
 
           - task: PublishTestResults@2
-            displayName: 'Publish PHP Test Results'
+            displayName: 'Publish PHP Results'
             inputs:
               testResultsFormat: 'JUnit'
-              testResultsFiles: '$(Build.ArtifactStagingDirectory)/php-test-results.xml'
+              testResultsFiles: '$(Build.ArtifactStagingDirectory)\php-test-results.xml'
               testRunTitle: 'PHP Laravel Tests'
             condition: always()
 
       - job: NodeJS
-        displayName: 'Node.js Build & Test'
+        displayName: 'Node.js'
         pool:
           name: 'LocalAgent'
+        timeoutInMinutes: 15
         steps:
           - checkout: self
+            fetchDepth: 1
 
-          - task: NodeTool@0
-            displayName: 'Use Node.js 18'
+          - task: Cache@2
+            displayName: 'Cache npm packages'
             inputs:
-              versionSpec: '18.x'
+              key: 'npm | $(Build.SourcesDirectory)\Nodejs\package-lock.json'
+              path: $(Build.SourcesDirectory)\Nodejs\node_modules
+              cacheHitVar: NPM_CACHE_HIT
 
           - script: |
-              cd Nodejs
-              npm ci
+              "C:\Program Files\nodejs\npm.cmd" ci --prefer-offline
+            workingDirectory: $(Build.SourcesDirectory)\Nodejs
+            condition: ne(variables.NPM_CACHE_HIT, 'true')
             displayName: 'npm Install'
 
           - script: |
-              cd Nodejs
-              npm test
+              "C:\Program Files\nodejs\npm.cmd" test -- --forceExit --no-coverage --testTimeout=5000
+            workingDirectory: $(Build.SourcesDirectory)\Nodejs
             displayName: 'Run Jest Tests'
             env:
               JEST_JUNIT_OUTPUT_DIR: $(Build.ArtifactStagingDirectory)
               JEST_JUNIT_OUTPUT_NAME: node-test-results.xml
 
           - task: PublishTestResults@2
-            displayName: 'Publish Node Test Results'
+            displayName: 'Publish Node Results'
             inputs:
               testResultsFormat: 'JUnit'
-              testResultsFiles: '$(Build.ArtifactStagingDirectory)/node-test-results.xml'
+              testResultsFiles: '$(Build.ArtifactStagingDirectory)\node-test-results.xml'
               testRunTitle: 'Node.js Tests'
             condition: always()
