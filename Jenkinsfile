@@ -35,7 +35,7 @@ pipeline {
                         dir('php') {
                             bat """
                                 if not exist vendor (
-                                    "${COMPOSER}" install --no-interaction --no-dev --prefer-dist --optimize-autoloader --no-scripts
+                                    "${COMPOSER}" install --no-interaction --prefer-dist --optimize-autoloader --no-scripts
                                 )
                                 if not exist .env copy .env.example .env
                                 "${PHP}" artisan key:generate --force
