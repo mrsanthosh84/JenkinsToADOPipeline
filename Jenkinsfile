@@ -83,6 +83,5 @@ pipeline {
     post {
         success { echo "Build #${env.BUILD_NUMBER} passed. ADO triggered!" }
         failure { echo "Build #${env.BUILD_NUMBER} failed." }
-        always  { cleanWs() }
     }
 }
