@@ -30,7 +30,9 @@ stages:
               cacheHitVar: COMPOSER_CACHE_HIT
 
           - script: |
-              "C:\Users\v-samanickam\AppData\Local\ComposerSetup\bin\composer.bat" install --no-interaction --no-dev --prefer-dist --optimize-autoloader --no-scripts
+              "C:\php\php.exe" -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+              "C:\php\php.exe" composer-setup.php --install-dir=C:\php --filename=composer.phar
+              "C:\php\php.exe" C:\php\composer.phar install --no-interaction --no-dev --prefer-dist --optimize-autoloader --no-scripts
             workingDirectory: $(Build.SourcesDirectory)\php
             condition: ne(variables.COMPOSER_CACHE_HIT, 'true')
             displayName: 'Composer Install'
@@ -77,7 +79,7 @@ stages:
             displayName: 'npm Install'
 
           - script: |
-              "C:\Program Files\nodejs\npm.cmd" test -- --forceExit --no-coverage --testTimeout=5000
+              "C:\Program Files\nodejs\npm.cmd" test
             workingDirectory: $(Build.SourcesDirectory)\Nodejs
             displayName: 'Run Jest Tests'
             env:
