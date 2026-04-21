@@ -16,20 +16,20 @@ stages:
       - job: PHP_Laravel
         displayName: 'PHP Laravel Build & Test'
         pool:
-          vmImage: 'ubuntu-latest'
+          name: 'LocalAgent'
         steps:
           - checkout: self
 
           - script: |
               cd php
-              composer install --no-interaction --prefer-dist --optimize-autoloader
-              cp .env.example .env
+              call composer install --no-interaction --prefer-dist --optimize-autoloader
+              copy .env.example .env
               php artisan key:generate
             displayName: 'Composer Install & Setup'
 
           - script: |
               cd php
-              vendor/bin/phpunit --configuration phpunit.xml --log-junit $(Build.ArtifactStagingDirectory)/php-test-results.xml
+              php vendor/bin/phpunit --configuration phpunit.xml --log-junit $(Build.ArtifactStagingDirectory)/php-test-results.xml
             displayName: 'Run PHPUnit Tests'
 
           - task: PublishTestResults@2
@@ -43,7 +43,7 @@ stages:
       - job: NodeJS
         displayName: 'Node.js Build & Test'
         pool:
-          vmImage: 'ubuntu-latest'
+          name: 'LocalAgent'
         steps:
           - checkout: self
 
@@ -59,7 +59,7 @@ stages:
 
           - script: |
               cd Nodejs
-              npm test -- --ci --reporters=default --reporters=jest-junit
+              npm test
             displayName: 'Run Jest Tests'
             env:
               JEST_JUNIT_OUTPUT_DIR: $(Build.ArtifactStagingDirectory)

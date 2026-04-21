@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        ADO_ORG         = 'your-ado-org'
+        ADO_ORG         = 'SanthoshManickam'
         ADO_PROJECT     = 'JenkinsToADOPipeline'
         ADO_PIPELINE_ID = '1'
         ADO_BRANCH      = 'main'
