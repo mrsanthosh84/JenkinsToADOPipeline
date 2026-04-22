@@ -62,18 +62,19 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'ado-pat', variable: 'ADO_PAT')]) {
                     script {
-                        def encodedPat = "Basic " + Base64.encoder.encodeToString(":${ADO_PAT}".bytes)
+                        def pat = ADO_PAT.toString()
+                        def encoded = 'Basic ' + pat.bytes.encodeBase64().toString()
                         httpRequest(
                             httpMode: 'POST',
                             url: "https://dev.azure.com/${ADO_ORG}/${ADO_PROJECT}/_apis/pipelines/${ADO_PIPELINE_ID}/runs?api-version=7.1",
                             contentType: 'APPLICATION_JSON',
-                            requestBody: """{"resources": {"repositories": {"self": {"refName": "refs/heads/${ADO_BRANCH}"}}}}""",
-                            customHeaders: [[name: 'Authorization', value: encodedPat]],
+                            requestBody: '{"resources":{"repositories":{"self":{"refName":"refs/heads/main"}}}}',
+                            customHeaders: [[name: 'Authorization', value: encoded]],
                             validResponseCodes: '200:299'
                         )
                     }
                 }
-                echo "ADO Pipeline triggered!"
+                echo 'ADO Pipeline triggered!'
             }
         }
     }
