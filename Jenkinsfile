@@ -60,21 +60,10 @@ pipeline {
 
         stage('Trigger ADO') {
             steps {
-                withCredentials([string(credentialsId: 'ado-pat', variable: 'ADO_PAT')]) {
-                    script {
-                        def pat = ADO_PAT.toString()
-                        def encoded = 'Basic ' + pat.bytes.encodeBase64().toString()
-                        httpRequest(
-                            httpMode: 'POST',
-                            url: "https://dev.azure.com/${ADO_ORG}/${ADO_PROJECT}/_apis/pipelines/${ADO_PIPELINE_ID}/runs?api-version=7.1",
-                            contentType: 'APPLICATION_JSON',
-                            requestBody: '{"resources":{"repositories":{"self":{"refName":"refs/heads/main"}}}}',
-                            customHeaders: [[name: 'Authorization', value: encoded]],
-                            validResponseCodes: '200:299'
-                        )
-                    }
-                }
-                echo 'ADO Pipeline triggered!'
+                bat """
+                    curl -s -X POST "https://dev.azure.com/SanthoshManickam/JenkinsToADOPipeline/_apis/pipelines/5/runs?api-version=7.1" -H "Content-Type: application/json" -H "Authorization: Basic OkUwRnd1cDI1SlgwaUtxMkkzc0d6Ym1wa0lOdmdZQVFVVWhXZGF6T2RqUzZNTkFTZE84aWVKUVFKOTlDREFDQUFBQUFnNmt6QUFBQVNBWkRPOVBzZQ==" -d "{\"resources\":{\"repositories\":{\"self\":{\"refName\":\"refs/heads/main\"}}}}"
+                """
+                echo 'ADO Pipeline triggered successfully!'
             }
         }
     }
