@@ -8,14 +8,8 @@ pipeline {
     }
 
     environment {
-        ADO_ORG         = 'SanthoshManickam'
-        ADO_PROJECT     = 'JenkinsToADOPipeline'
-        ADO_PIPELINE_ID = '5'
-        ADO_BRANCH      = 'main'
-        COMPOSER      = 'C:\\agent\\composer.bat'
-        COMPOSER_PHAR = 'C:\\agent\\composer.phar'
-        PHP             = 'C:\\php\\php.exe'
-        NPM             = 'C:\\Program Files\\nodejs\\npm.cmd'
+        PHP = 'C:\\php\\php.exe'
+        NPM = 'C:\\Program Files\\nodejs\\npm.cmd'
     }
 
     stages {
@@ -60,7 +54,8 @@ pipeline {
 
         stage('Trigger ADO') {
             steps {
-                bat 'curl -s -X POST "https://dev.azure.com/SanthoshManickam/JenkinsToADOPipeline/_apis/pipelines/5/runs?api-version=7.1" -H "Content-Type: application/json" -H "Authorization: Basic OkUwRnd1cDI1SlgwaUtxMkkzc0d6Ym1wa0lOdmdZQVFVVWhXZGF6T2RqUzZNTkFTZE84aWVKUVFKOTlDREFDQUFBQUFnNmt6QUFBQVNBWkRPOVBzZQ==" -d "{\"resources\":{\"repositories\":{\"self\":{\"refName\":\"refs/heads/main\"}}}}"'
+                writeFile file: 'ado_payload.json', text: '{"resources":{"repositories":{"self":{"refName":"refs/heads/main"}}}}'
+                bat 'curl -s -w "\\nHTTP_STATUS:%%{http_code}" -X POST "https://dev.azure.com/SanthoshManickam/JenkinsToADOPipeline/_apis/pipelines/5/runs?api-version=7.1" -H "Content-Type: application/json" -H "Authorization: Basic OkUwRnd1cDI1SlgwaUtxMkkzc0d6Ym1wa0lOdmdZQVFVVWhXZGF6T2RqUzZNTkFTZE84aWVKUVFKOTlDREFDQUFBQUFnNmt6QUFBQVNBWkRPOVBzZQ==" -d @ado_payload.json'
                 echo 'ADO Pipeline triggered successfully!'
             }
         }
