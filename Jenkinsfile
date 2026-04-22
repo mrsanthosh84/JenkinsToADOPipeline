@@ -12,7 +12,7 @@ pipeline {
         ADO_PROJECT     = 'JenkinsToADOPipeline'
         ADO_PIPELINE_ID = '5'
         ADO_BRANCH      = 'main'
-        COMPOSER        = 'C:\\Users\\v-samanickam\\AppData\\Local\\ComposerSetup\\bin\\composer.bat'
+        COMPOSER = 'C:\\php\\php.exe C:\\agent\\composer.phar'
         PHP             = 'C:\\php\\php.exe'
         NPM             = 'C:\\Program Files\\nodejs\\npm.cmd'
     }
