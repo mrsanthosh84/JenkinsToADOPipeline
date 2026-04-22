@@ -12,7 +12,7 @@ pipeline {
         ADO_PROJECT     = 'JenkinsToADOPipeline'
         ADO_PIPELINE_ID = '5'
         ADO_BRANCH      = 'main'
-        COMPOSER = 'C:\\php\\php.exe'
+        COMPOSER      = 'C:\\agent\\composer.bat'
         COMPOSER_PHAR = 'C:\\agent\\composer.phar'
         PHP             = 'C:\\php\\php.exe'
         NPM             = 'C:\\Program Files\\nodejs\\npm.cmd'
@@ -36,8 +36,7 @@ pipeline {
                         dir('php') {
                             bat """
                                 if not exist vendor (
-                                    copy C:\\agent\\composer.phar composer.phar
-                                    "${PHP}" composer.phar install --no-interaction --prefer-dist --optimize-autoloader --no-scripts
+                                    "${COMPOSER}" install --no-interaction --prefer-dist --optimize-autoloader --no-scripts
                                 )
                                 if not exist .env copy .env.example .env
                                 "${PHP}" artisan key:generate --force
