@@ -54,15 +54,28 @@ pipeline {
 
         stage('Trigger ADO') {
             steps {
-                writeFile file: 'ado_payload.json', text: '{"resources":{"repositories":{"self":{"refName":"refs/heads/main"}}}}'
-                bat 'curl -s -w "\\nHTTP_STATUS:%%{http_code}" -X POST "https://dev.azure.com/SanthoshManickam/JenkinsToADOPipeline/_apis/pipelines/5/runs?api-version=7.1" -H "Content-Type: application/json" -H "Authorization: Basic OkUwRnd1cDI1SlgwaUtxMkkzc0d6Ym1wa0lOdmdZQVFVVWhXZGF6T2RqUzZNTkFTZE84aWVKUVFKOTlDREFDQUFBQUFnNmt6QUFBQVNBWkRPOVBzZQ==" -d @ado_payload.json'
-                echo 'ADO Pipeline triggered successfully!'
+                script {
+                    writeFile file: 'ado_payload.json', text: '{"resources":{"repositories":{"self":{"refName":"refs/heads/main"}}}}'
+                    def response = bat(
+                        script: 'curl -s -X POST "https://dev.azure.com/SanthoshManickam/JenkinsToADOPipeline/_apis/pipelines/5/runs?api-version=7.1" -H "Content-Type: application/json" -H "Authorization: Basic OkUwRnd1cDI1SlgwaUtxMkkzc0d6Ym1wa0lOdmdZQVFVVWhXZGF6T2RqUzZNTkFTZE84aWVKUVFKOTlDREFDQUFBQUFnNmt6QUFBQVNBWkRPOVBzZQ==" -d @ado_payload.json',
+                        returnStdout: true
+                    ).trim()
+                    echo "ADO Response: ${response}"
+                    def runId     = (response =~ /"id"\s*:\s*(\d+)/)[0][1]
+                    def buildNum  = (response =~ /"name"\s*:\s*"([^"]+)"/)[0][1]
+                    echo "============================================"
+                    echo "Jenkins  Build : #${env.BUILD_NUMBER}"
+                    echo "ADO Build Number : ${buildNum}"
+                    echo "ADO Run ID       : ${runId}"
+                    echo "ADO Pipeline URL : https://dev.azure.com/SanthoshManickam/JenkinsToADOPipeline/_build/results?buildId=${runId}"
+                    echo "============================================"
+                }
             }
         }
     }
 
     post {
-        success { echo "Build #${env.BUILD_NUMBER} passed. ADO triggered!" }
-        failure { echo "Build #${env.BUILD_NUMBER} failed." }
+        success { echo "Jenkins #${env.BUILD_NUMBER} passed. ADO pipeline triggered!" }
+        failure { echo "Jenkins #${env.BUILD_NUMBER} failed." }
     }
 }
