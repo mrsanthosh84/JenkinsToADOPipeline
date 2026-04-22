@@ -61,8 +61,8 @@ pipeline {
                         returnStdout: true
                     ).trim()
                     echo "ADO Response: ${response}"
-                    def runId     = (response =~ /"id"\s*:\s*(\d+)/)[0][1]
-                    def buildNum  = (response =~ /"name"\s*:\s*"([^"]+)"/)[0][1]
+                    def runId    = (response =~ /"id":(\d+),"name":"([^"]+)"/)[0][1]
+                    def buildNum = (response =~ /"id":(\d+),"name":"([^"]+)"/)[0][2]
                     echo "============================================"
                     echo "Jenkins  Build : #${env.BUILD_NUMBER}"
                     echo "ADO Build Number : ${buildNum}"
