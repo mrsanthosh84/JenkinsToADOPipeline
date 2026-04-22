@@ -36,7 +36,8 @@ pipeline {
                         dir('php') {
                             bat """
                                 if not exist vendor (
-                                    "${PHP}" "${COMPOSER_PHAR}" install --no-interaction --prefer-dist --optimize-autoloader --no-scripts
+                                    copy C:\\agent\\composer.phar composer.phar
+                                    "${PHP}" composer.phar install --no-interaction --prefer-dist --optimize-autoloader --no-scripts
                                 )
                                 if not exist .env copy .env.example .env
                                 "${PHP}" artisan key:generate --force
