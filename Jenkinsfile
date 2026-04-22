@@ -60,9 +60,7 @@ pipeline {
 
         stage('Trigger ADO') {
             steps {
-                bat """
-                    curl -s -X POST "https://dev.azure.com/SanthoshManickam/JenkinsToADOPipeline/_apis/pipelines/5/runs?api-version=7.1" -H "Content-Type: application/json" -H "Authorization: Basic OkUwRnd1cDI1SlgwaUtxMkkzc0d6Ym1wa0lOdmdZQVFVVWhXZGF6T2RqUzZNTkFTZE84aWVKUVFKOTlDREFDQUFBQUFnNmt6QUFBQVNBWkRPOVBzZQ==" -d "{\"resources\":{\"repositories\":{\"self\":{\"refName\":\"refs/heads/main\"}}}}"
-                """
+                bat 'curl -s -X POST "https://dev.azure.com/SanthoshManickam/JenkinsToADOPipeline/_apis/pipelines/5/runs?api-version=7.1" -H "Content-Type: application/json" -H "Authorization: Basic OkUwRnd1cDI1SlgwaUtxMkkzc0d6Ym1wa0lOdmdZQVFVVWhXZGF6T2RqUzZNTkFTZE84aWVKUVFKOTlDREFDQUFBQUFnNmt6QUFBQVNBWkRPOVBzZQ==" -d "{\"resources\":{\"repositories\":{\"self\":{\"refName\":\"refs/heads/main\"}}}}"'
                 echo 'ADO Pipeline triggered successfully!'
             }
         }
